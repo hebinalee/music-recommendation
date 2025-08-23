@@ -5,11 +5,12 @@ Spotify 음악 추천 시스템 메인 실행 파일
 
 import os
 import sys
-from dotenv import load_dotenv
-from spotify_collector import SpotifyMusicCollector
-from vector_database import MusicVectorDatabase
-from music_recommender import MusicRecommender
 import pandas as pd
+from dotenv import load_dotenv
+
+from music_recommender import MusicRecommender
+from vector_database import MusicVectorDatabase
+from spotify_collector import SpotifyMusicCollector
 
 def main():
     """메인 실행 함수"""
@@ -46,10 +47,11 @@ def main():
             print("3. 음악 추천 받기")
             print("4. 사용자 선호도 관리")
             print("5. 데이터베이스 통계")
-            print("6. 종료")
+            print("6. Two-Stage 모델 훈련")
+            print("7. 종료")
             print("="*50)
             
-            choice = input("원하는 기능을 선택하세요 (1-6): ").strip()
+            choice = input("원하는 기능을 선택하세요 (1-7): ").strip()
             
             if choice == '1':
                 collect_music_data(spotify_collector, vector_db)
@@ -62,10 +64,12 @@ def main():
             elif choice == '5':
                 show_database_stats(vector_db)
             elif choice == '6':
+                train_two_stage_models(recommender)
+            elif choice == '7':
                 print("👋 시스템을 종료합니다. 감사합니다!")
                 break
             else:
-                print("❌ 잘못된 선택입니다. 1-6 중에서 선택해주세요.")
+                print("❌ 잘못된 선택입니다. 1-7 중에서 선택해주세요.")
     
     except Exception as e:
         print(f"❌ 시스템 오류가 발생했습니다: {e}")
@@ -196,10 +200,11 @@ def get_recommendations(recommender):
     print("1. 콘텐츠 기반 추천")
     print("2. 협업 필터링")
     print("3. 하이브리드 추천")
+    print("4. Two-Stage 추천 (Two-Tower + Wide&Deep)")
     
-    method = input("선택 (1-3): ").strip()
+    method = input("선택 (1-4): ").strip()
     
-    method_map = {'1': 'content_based', '2': 'collaborative', '3': 'hybrid'}
+    method_map = {'1': 'content_based', '2': 'collaborative', '3': 'hybrid', '4': 'two_stage'}
     if method in method_map:
         n_results = int(input("추천 개수를 입력하세요 (기본값: 10): ") or "10")
         
@@ -215,7 +220,9 @@ def get_recommendations(recommender):
                 if 'method' in rec:
                     print(f"   추천 방식: {rec['method']}")
                 
-                if 'recommendation_score' in rec:
+                if 'two_stage_score' in rec:
+                    print(f"   Two-Stage 점수: {rec['two_stage_score']:.3f}")
+                elif 'recommendation_score' in rec:
                     print(f"   추천 점수: {rec['recommendation_score']:.3f}")
                 elif 'feature_score' in rec:
                     print(f"   특성 점수: {rec['feature_score']:.3f}")
@@ -277,6 +284,33 @@ def show_database_stats(vector_db):
         print(f"저장 경로: {stats['persist_directory']}")
     else:
         print("❌ 통계 정보를 가져올 수 없습니다.")
+
+
+def train_two_stage_models(recommender):
+    """Two-Stage 추천 시스템 모델들을 훈련합니다."""
+    print("\n🤖 Two-Stage 모델 훈련")
+    print("-" * 30)
+    
+    print("훈련할 모델을 선택하세요:")
+    print("1. Two-Tower 모델 (후보 생성용)")
+    print("2. Wide&Deep 모델 (랭킹용)")
+    print("3. 두 모델 모두 훈련")
+    
+    choice = input("선택 (1-3): ").strip()
+    
+    if choice == '1':
+        print("🔄 Two-Tower 모델 훈련을 시작합니다...")
+        recommender._train_two_tower_model()
+    elif choice == '2':
+        print("🔄 Wide&Deep 모델 훈련을 시작합니다...")
+        recommender._train_wide_deep_model()
+    elif choice == '3':
+        print("🔄 두 모델 모두 훈련을 시작합니다...")
+        recommender._train_two_tower_model()
+        recommender._train_wide_deep_model()
+        print("✅ 모든 모델 훈련 완료!")
+    else:
+        print("❌ 잘못된 선택입니다.")
 
 if __name__ == "__main__":
     main()
