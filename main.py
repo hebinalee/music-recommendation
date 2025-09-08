@@ -47,11 +47,12 @@ def main():
             print("3. 음악 추천 받기")
             print("4. 사용자 선호도 관리")
             print("5. 데이터베이스 통계")
-            print("6. Two-Stage 모델 훈련")
-            print("7. 종료")
+            print("6. ANN 인덱스 (재)빌드")
+            print("7. Two-Stage 모델 훈련")
+            print("8. 종료")
             print("="*50)
             
-            choice = input("원하는 기능을 선택하세요 (1-7): ").strip()
+            choice = input("원하는 기능을 선택하세요 (1-8): ").strip()
             
             if choice == '1':
                 collect_music_data(spotify_collector, vector_db)
@@ -64,12 +65,14 @@ def main():
             elif choice == '5':
                 show_database_stats(vector_db)
             elif choice == '6':
-                train_two_stage_models(recommender)
+                rebuild_ann_index(recommender)
             elif choice == '7':
+                train_two_stage_models(recommender)
+            elif choice == '8':
                 print("👋 시스템을 종료합니다. 감사합니다!")
                 break
             else:
-                print("❌ 잘못된 선택입니다. 1-7 중에서 선택해주세요.")
+                print("❌ 잘못된 선택입니다. 1-8 중에서 선택해주세요.")
     
     except Exception as e:
         print(f"❌ 시스템 오류가 발생했습니다: {e}")
@@ -311,6 +314,12 @@ def train_two_stage_models(recommender):
         print("✅ 모든 모델 훈련 완료!")
     else:
         print("❌ 잘못된 선택입니다.")
+
+def rebuild_ann_index(recommender):
+    """ANN 인덱스를 (재)구축합니다."""
+    print("\n⚙️ ANN 인덱스 (재)빌드")
+    print("-" * 30)
+    recommender._rebuild_ann_index()
 
 if __name__ == "__main__":
     main()

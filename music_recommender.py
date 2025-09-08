@@ -13,6 +13,7 @@ import torch.nn.functional as F
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from ann_index import ANNIndex
 
 class MusicRecommender:
     def __init__(self, vector_db: MusicVectorDatabase, spotify_collector: SpotifyMusicCollector):
@@ -49,6 +50,12 @@ class MusicRecommender:
         
         # 모델 로드 시도
         self._load_models()
+        
+        # ANN 인덱스 초기화
+        self.ann_index = ANNIndex(self.embedding_dim, 
+                                   index_path=os.path.join(self.model_save_dir, 'faiss_index.bin'),
+                                   mapping_path=os.path.join(self.model_save_dir, 'faiss_id_map.json'))
+        self.ann_index.load()
     
     def _load_models(self):
         """저장된 모델들을 로드합니다."""
@@ -300,33 +307,40 @@ class MusicRecommender:
             if user_embedding is None:
                 return []
             
-            # 모든 아이템에 대해 유사도 계산
-            all_items = self.vector_db.collection.get()
-            if not all_items['ids']:
-                return []
+            # ANN 인덱스가 준비되지 않았다면 빌드 시도
+            if not self.ann_index.is_ready():
+                self._rebuild_ann_index()
+                if not self.ann_index.is_ready():
+                    print("⚠️ ANN 인덱스를 사용할 수 없어 전수 검색으로 대체합니다.")
+                    return self._fallback_bruteforce_candidates(user_embedding, n_candidates)
             
-            similarities = []
-            for i, item_id in enumerate(all_items['ids']):
-                item_embedding = self._get_item_embedding(item_id)
-                if item_embedding is not None:
-                    # 코사인 유사도 계산
-                    similarity = F.cosine_similarity(
-                        user_embedding.unsqueeze(0), 
-                        item_embedding.unsqueeze(0)
-                    ).item()
-                    
-                    similarities.append({
-                        'id': item_id,
-                        'similarity': similarity
-                    })
-            
-            # 유사도로 정렬하여 상위 후보 반환
-            similarities.sort(key=lambda x: x['similarity'], reverse=True)
-            return similarities[:n_candidates]
-            
+            # ANN 검색
+            user_vec = user_embedding.detach().cpu().numpy().reshape(1, -1)
+            scores, ids = self.ann_index.search(user_vec, n_candidates)
+            decoded_ids = self.ann_index.decode_ids(ids)
+            results = []
+            for i, item_id in enumerate(decoded_ids[0]):
+                if not item_id:
+                    continue
+                results.append({'id': item_id, 'similarity': float(scores[0][i])})
+            return results
         except Exception as e:
             print(f"❌ Two-Tower 후보 생성 중 오류: {e}")
             return []
+
+    def _fallback_bruteforce_candidates(self, user_embedding: torch.Tensor, n_candidates: int) -> List[Dict[str, Any]]:
+        all_items = self.vector_db.collection.get()
+        if not all_items['ids']:
+            return []
+        similarities = []
+        for item_id in all_items['ids']:
+            item_embedding = self._get_item_embedding(item_id)
+            if item_embedding is None:
+                continue
+            similarity = F.cosine_similarity(user_embedding.unsqueeze(0), item_embedding.unsqueeze(0)).item()
+            similarities.append({'id': item_id, 'similarity': similarity})
+        similarities.sort(key=lambda x: x['similarity'], reverse=True)
+        return similarities[:n_candidates]
     
     def _rank_candidates_wide_deep(self, user_id: str, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Wide&Deep 모델을 사용하여 후보들을 랭킹합니다."""
@@ -512,9 +526,35 @@ class MusicRecommender:
             model_path = os.path.join(self.model_save_dir, 'two_tower_model.pth')
             torch.save(self.two_tower_model.state_dict(), model_path)
             print(f"✅ Two-Tower 모델 훈련 완료 및 저장: {model_path}")
+            # 모델이 갱신되었으므로 ANN 인덱스 재빌드
+            self._rebuild_ann_index()
             
         except Exception as e:
             print(f"❌ Two-Tower 모델 훈련 중 오류: {e}")
+
+    def _rebuild_ann_index(self) -> None:
+        try:
+            # 모든 아이템 임베딩 계산
+            all_items = self.vector_db.collection.get()
+            if not all_items['ids']:
+                return
+            item_ids: List[str] = []
+            item_emb_list: List[np.ndarray] = []
+            for item_id in all_items['ids']:
+                emb = self._get_item_embedding(item_id)
+                if emb is None:
+                    continue
+                item_ids.append(item_id)
+                item_emb_list.append(emb.detach().cpu().numpy())
+            if not item_emb_list:
+                return
+            item_emb_matrix = np.vstack(item_emb_list)
+            self.ann_index.build_from_embeddings(item_ids, item_emb_matrix, use_ivf=False)
+            # IVF가 필요한 대규모일 경우 use_ivf=True로 전환 가능
+            self.ann_index.save()
+            print(f"✅ ANN index built with {len(item_ids)} items")
+        except Exception as e:
+            print(f"❌ ANN 인덱스 빌드 실패: {e}")
     
     def _train_wide_deep_model(self):
         """Wide&Deep 모델을 훈련합니다."""
