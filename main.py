@@ -8,9 +8,9 @@ import sys
 import pandas as pd
 from dotenv import load_dotenv
 
-from music_recommender import MusicRecommender
-from vector_database import MusicVectorDatabase
-from spotify_collector import SpotifyMusicCollector
+from src.music_recommender import MusicRecommender
+from src.vector_database import MusicVectorDatabase
+from src.spotify_collector import SpotifyMusicCollector
 
 def main():
     """메인 실행 함수"""

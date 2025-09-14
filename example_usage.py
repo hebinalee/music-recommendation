@@ -5,9 +5,9 @@ Spotify 음악 추천 시스템 사용 예시
 
 import os
 from dotenv import load_dotenv
-from spotify_collector import SpotifyMusicCollector
-from vector_database import MusicVectorDatabase
-from music_recommender import MusicRecommender
+from src.spotify_collector import SpotifyMusicCollector
+from src.vector_database import MusicVectorDatabase
+from src.music_recommender import MusicRecommender
 import pandas as pd
 
 def main():

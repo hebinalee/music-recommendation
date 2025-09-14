@@ -17,15 +17,35 @@ Spotify API → 음악 수집기 → Vector DB → 추천 엔진 → 사용자
   음악 정보    오디오 특성   임베딩    추천 알고리즘
 ```
 
-## 주요 파일들
-1. spotify_collector.py - Spotify API를 통한 음악 데이터 수집
-2. vector_database.py - Chroma DB를 사용한 Vector 데이터베이스 관리
-3. music_recommender.py - 사용자 선호도 기반 음악 추천 엔진
-4. main.py - 통합된 메인 실행 프로그램
-5. example_usage.py - 시스템 사용 예시 및 데모
-6. requirements.txt - 필요한 Python 패키지 목록
-7. env_example.txt - 환경 변수 설정 예시
-8. README.md - 상세한 사용법 및 문서
+## 📁 프로젝트 구조
+
+```
+music/
+├── main.py                    # 메인 실행 파일 (진입점)
+├── example_usage.py           # 사용 예시 및 데모
+├── README.md                  # 프로젝트 문서
+├── requirements.txt           # Python 의존성 목록
+├── env_example.txt           # 환경 변수 설정 예시
+└── src/                      # 소스 코드 패키지
+    ├── __init__.py           # 패키지 초기화
+    ├── music_recommender.py  # 메인 추천 시스템 클래스
+    ├── vector_database.py    # Chroma DB 벡터 데이터베이스 관리
+    ├── spotify_collector.py  # Spotify API 음악 데이터 수집
+    └── ann_index.py          # ANN 인덱스 관리 (Two-Stage 추천용)
+```
+
+### 주요 모듈 설명
+
+- **`main.py`**: 통합된 메인 실행 프로그램 (CLI 인터페이스)
+- **`src/music_recommender.py`**: 핵심 추천 시스템 클래스
+  - 콘텐츠 기반 필터링
+  - 협업 필터링  
+  - 하이브리드 추천
+  - Two-Stage 추천 (Two-Tower + Wide&Deep)
+- **`src/vector_database.py`**: Chroma DB를 사용한 벡터 데이터베이스 관리
+- **`src/spotify_collector.py`**: Spotify API를 통한 음악 데이터 수집
+- **`src/ann_index.py`**: ANN 인덱스 관리 (Two-Stage 추천 시스템용)
+- **`example_usage.py`**: 시스템 사용 예시 및 데모 코드
 
 ## 📋 요구사항
 
@@ -67,6 +87,14 @@ SPOTIFY_CLIENT_ID=your_client_id_here
 SPOTIFY_CLIENT_SECRET=your_client_secret_here
 SPOTIFY_REDIRECT_URI=http://localhost:8888/callback
 CHROMA_PERSIST_DIRECTORY=./chroma_db
+
+# Two-Stage 모델 설정 (선택사항)
+MODEL_SAVE_DIR=./models
+EMBEDDING_DIM=128
+HIDDEN_DIM=256
+LEARNING_RATE=0.001
+BATCH_SIZE=32
+EPOCHS=100
 ```
 
 ## 🎮 사용 방법
@@ -91,6 +119,7 @@ python main.py
    - 콘텐츠 기반 추천
    - 협업 필터링
    - 하이브리드 추천
+   - Two-Stage 추천 (Two-Tower + Wide&Deep)
 
 4. **사용자 선호도 관리**
    - 음악 평가 및 평점
@@ -100,14 +129,22 @@ python main.py
    - 저장된 음악 수 확인
    - 시스템 상태 모니터링
 
+6. **ANN 인덱스 관리**
+   - Two-Stage 모델용 인덱스 (재)빌드
+   - FAISS 기반 빠른 검색 최적화
+
+7. **Two-Stage 모델 훈련**
+   - Two-Tower 모델 훈련
+   - Wide&Deep 모델 훈련
+
 ## 🔧 고급 사용법
 
 ### Python 코드에서 직접 사용
 
 ```python
-from spotify_collector import SpotifyMusicCollector
-from vector_database import MusicVectorDatabase
-from music_recommender import MusicRecommender
+from src.spotify_collector import SpotifyMusicCollector
+from src.vector_database import MusicVectorDatabase
+from src.music_recommender import MusicRecommender
 
 # 컴포넌트 초기화
 collector = SpotifyMusicCollector()
@@ -154,6 +191,12 @@ for genre in genres:
 - 콘텐츠 기반 + 협업 필터링 결합
 - 더 정확하고 다양한 추천 결과
 - 중복 제거 및 점수 통합
+
+### 4. Two-Stage 추천 시스템 (고급)
+- **Two-Tower 모델**: 사용자와 아이템을 별도 인코더로 처리
+- **Wide&Deep 모델**: 선형 모델과 딥러닝 모델 결합
+- **ANN 인덱스**: FAISS를 사용한 빠른 유사도 검색
+- 대규모 데이터베이스에서 효율적인 추천 성능
 
 ## 🗄️ 데이터베이스 구조
 

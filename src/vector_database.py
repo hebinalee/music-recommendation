@@ -224,18 +224,3 @@ class MusicVectorDatabase:
         except Exception as e:
             print(f"Error clearing database: {e}")
             return False
-
-if __name__ == "__main__":
-    # 사용 예시
-    db = MusicVectorDatabase()
-    
-    # 데이터베이스 통계 확인
-    stats = db.get_database_stats()
-    print(f"Database stats: {stats}")
-    
-    # 유사한 음악 검색 예시
-    similar = db.search_similar_music("k-pop dance music", n_results=5)
-    print(f"Found {len(similar)} similar tracks")
-    
-    for track in similar[:3]:
-        print(f"- {track['name']} by {track['artists']} (Score: {track['similarity_score']:.3f})")

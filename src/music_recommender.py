@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
-from vector_database import MusicVectorDatabase
-from spotify_collector import SpotifyMusicCollector
+from .vector_database import MusicVectorDatabase
+from .spotify_collector import SpotifyMusicCollector
 
 import torch
 import torch.nn as nn
@@ -13,7 +13,7 @@ import torch.nn.functional as F
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from ann_index import ANNIndex
+from .ann_index import ANNIndex
 
 class MusicRecommender:
     def __init__(self, vector_db: MusicVectorDatabase, spotify_collector: SpotifyMusicCollector):
@@ -850,8 +850,8 @@ class TwoTowerModel(nn.Module):
 
 if __name__ == "__main__":
     # 사용 예시
-    from vector_database import MusicVectorDatabase
-    from spotify_collector import SpotifyMusicCollector
+    from .vector_database import MusicVectorDatabase
+    from .spotify_collector import SpotifyMusicCollector
     
     # 초기화
     vector_db = MusicVectorDatabase()

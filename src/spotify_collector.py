@@ -170,19 +170,3 @@ class SpotifyMusicCollector:
         df.to_csv(filename, index=False)
         print(f"Data saved to {filename}")
         return filename
-
-if __name__ == "__main__":
-    # 사용 예시
-    collector = SpotifyMusicCollector()
-    
-    # 검색어로 트랙 검색
-    search_queries = ['k-pop', 'jazz', 'rock', 'classical']
-    
-    # 데이터 수집
-    music_data = collector.collect_music_data(search_queries=search_queries)
-    
-    # CSV로 저장
-    collector.save_to_csv(music_data)
-    
-    print(f"Collected {len(music_data)} tracks")
-    print(music_data.head())
