@@ -27,9 +27,10 @@ Spotify API → 음악 수집기 → Vector DB → 추천 엔진 → 사용자
 
 ```
 music/
-├── main.py                    # 메인 실행 파일 (진입점)
-├── example_usage.py           # 사용 예시 및 데모
-├── run_tests.py              # 테스트 실행 스크립트
+├── scripts/                   # 진입점 스크립트
+│   ├── main.py                # 메인 실행 파일
+│   ├── example_usage.py       # 사용 예시 및 데모
+│   └── run_tests.py           # 테스트 실행
 ├── README.md                  # 프로젝트 문서
 ├── requirements.txt           # Python 의존성 목록
 ├── env_example.txt           # 환경 변수 설정 예시
@@ -55,7 +56,7 @@ music/
 
 ### 주요 모듈 설명
 
-- **`main.py`**: 통합된 메인 실행 프로그램 (CLI 인터페이스)
+- **`scripts/main.py`**: 통합된 메인 실행 프로그램 (CLI 인터페이스)
 - **`src/music_recommender.py`**: 핵심 추천 시스템 클래스
   - 콘텐츠 기반 필터링
   - 협업 필터링  
@@ -70,7 +71,7 @@ music/
 - **`src/logger.py`**: 구조화된 로깅 시스템
 - **`src/cache.py`**: 메모리 및 파일 기반 캐싱
 - **`src/monitoring.py`**: 성능 모니터링 및 사용자 행동 추적
-- **`example_usage.py`**: 시스템 사용 예시 및 데모 코드
+- **`scripts/example_usage.py`**: 시스템 사용 예시 및 데모 코드
 
 ## 📋 요구사항
 
@@ -135,12 +136,12 @@ LOG_DIR=./logs
 
 ### 기본 실행
 ```bash
-python main.py
+python scripts/main.py
 ```
 
 ### 테스트 실행
 ```bash
-python run_tests.py
+python scripts/run_tests.py
 ```
 
 ### 프로그램 기능
@@ -344,7 +345,7 @@ results = vector_db.search_by_audio_features(target_features)
 ### 테스트 실행
 ```bash
 # 모든 테스트 실행
-python run_tests.py
+python scripts/run_tests.py
 
 # 특정 테스트 모듈 실행
 python -m unittest tests.test_config

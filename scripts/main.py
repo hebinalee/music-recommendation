@@ -5,6 +5,12 @@ Spotify 음악 추천 시스템 메인 실행 파일
 
 import os
 import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import pandas as pd
 from dotenv import load_dotenv
 

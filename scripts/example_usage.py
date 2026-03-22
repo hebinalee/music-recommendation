@@ -4,6 +4,13 @@ Spotify 음악 추천 시스템 사용 예시
 """
 
 import os
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 from dotenv import load_dotenv
 from src.spotify_collector import SpotifyMusicCollector
 from src.vector_database import MusicVectorDatabase
@@ -165,7 +172,7 @@ def main():
         print("✅ 추천 이유 설명")
         print("✅ 데이터 지속성 (저장/로드)")
         
-        print("\n🚀 이제 main.py를 실행하여 전체 시스템을 사용해보세요!")
+        print("\n🚀 이제 scripts/main.py를 실행하여 전체 시스템을 사용해보세요!")
         print("📚 README.md에서 더 자세한 사용법을 확인할 수 있습니다")
         
     except Exception as e:
