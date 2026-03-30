@@ -1,8 +1,9 @@
 import os
 import json
-import numpy as np
 import faiss
+import numpy as np
 from typing import Dict, Any, List, Tuple
+
 
 class ANNIndex:
     def __init__(self, dim: int, index_path: str = './models/faiss_index.bin', mapping_path: str = './models/faiss_id_map.json'):

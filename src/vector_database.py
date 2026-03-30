@@ -1,18 +1,20 @@
-import chromadb
-import pandas as pd
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from typing import List, Dict, Any, Optional
 import os
+import chromadb
+import numpy as np
+import pandas as pd
 from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
+from sentence_transformers import SentenceTransformer
 
-from .config import ConfigManager
-from .exceptions import DatabaseError, handle_exception, ValidationError
-from .validators import DataValidator, DataSanitizer
+# Local source imports
 from .logger import get_logger
+from .config import ConfigManager
+from .validators import DataValidator, DataSanitizer
+from .exceptions import DatabaseError, handle_exception, ValidationError
 
 load_dotenv()
 logger = get_logger(__name__)
+
 
 class MusicVectorDatabase:
     def __init__(self, persist_directory: Optional[str] = None, config_manager: Optional[ConfigManager] = None):

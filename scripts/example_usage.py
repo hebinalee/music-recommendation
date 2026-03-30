@@ -5,17 +5,19 @@ Spotify 음악 추천 시스템 사용 예시
 
 import os
 import sys
+import pandas as pd
 from pathlib import Path
+from dotenv import load_dotenv
 
+# Local source imports
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from dotenv import load_dotenv
-from src.spotify_collector import SpotifyMusicCollector
-from src.vector_database import MusicVectorDatabase
 from src.music_recommender import MusicRecommender
-import pandas as pd
+from src.vector_database import MusicVectorDatabase
+from src.spotify_collector import SpotifyMusicCollector
+
 
 def main():
     """메인 예시 함수"""

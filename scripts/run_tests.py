@@ -6,7 +6,7 @@
 import sys
 from pathlib import Path
 
-# 프로젝트 루트를 Python 경로에 추가
+# Local source imports
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 

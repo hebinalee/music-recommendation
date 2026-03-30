@@ -4,8 +4,10 @@
 
 import os
 import unittest
-from unittest.mock import patch
 from tests import TestBase
+from unittest.mock import patch
+
+# Local source imports
 from src.config import ConfigManager, SpotifyConfig, DatabaseConfig, ModelConfig, LoggingConfig
 
 

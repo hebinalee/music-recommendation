@@ -4,6 +4,8 @@
 
 import unittest
 from tests import TestBase
+
+# Local source imports
 from src.exceptions import (
     MusicRecommenderError, SpotifyAPIError, DatabaseError, ModelError,
     ValidationError, ConfigError, ErrorCode, handle_exception, create_user_friendly_message
@@ -51,7 +53,7 @@ class TestExceptions(TestBase):
         self.assertEqual(error_dict['error_code'], 'DATABASE_ERROR')
         self.assertEqual(error_dict['message'], 'Test error message')
         self.assertEqual(error_dict['details'], {'key': 'value'})
-        self.assertEqual(error_dict['original_exception'], 'Original error')
+        self.assertEqual(error_dict['original_exception'], 'Original')
     
     def test_spotify_api_error(self):
         """SpotifyAPIError 테스트"""

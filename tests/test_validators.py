@@ -5,8 +5,10 @@
 import unittest
 import pandas as pd
 from tests import TestBase
-from src.validators import DataValidator, DataSanitizer
+
+# Local source imports
 from src.exceptions import ValidationError
+from src.validators import DataValidator, DataSanitizer
 
 
 class TestDataValidator(TestBase):

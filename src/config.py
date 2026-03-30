@@ -3,10 +3,10 @@
 """
 
 import os
-from typing import Dict, Any, Optional
-from dataclasses import dataclass
-from dotenv import load_dotenv
 import logging
+from dotenv import load_dotenv
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
 
 
 @dataclass
@@ -107,7 +107,4 @@ class ConfigManager:
             'logging': self.get_logging_config()
         }
 
-
-# 전역 설정 관리자 인스턴스
-config_manager = ConfigManager()
 

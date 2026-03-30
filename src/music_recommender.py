@@ -7,13 +7,19 @@ from typing import List, Dict, Any, Optional
 from .vector_database import MusicVectorDatabase
 from .spotify_collector import SpotifyMusicCollector
 
+# PyTorch
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+# TensorFlow
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+# Local source imports
 from .ann_index import ANNIndex
+
 
 class MusicRecommender:
     def __init__(self, vector_db: MusicVectorDatabase, spotify_collector: SpotifyMusicCollector):

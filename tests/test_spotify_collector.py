@@ -3,9 +3,11 @@ Spotify 수집기 테스트
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 from tests import TestBase, MockSpotifyAPI
+from unittest.mock import Mock, patch, MagicMock
+
+# Local source imports
 from src.spotify_collector import SpotifyMusicCollector
 from src.exceptions import SpotifyAPIError, ValidationError
 

@@ -6,14 +6,14 @@ __version__ = "1.0.0"
 __author__ = "Music Recommender Team"
 
 # 주요 클래스들을 패키지 레벨에서 import 가능하게 함
+from .ann_index import ANNIndex
 from .music_recommender import MusicRecommender
 from .vector_database import MusicVectorDatabase
 from .spotify_collector import SpotifyMusicCollector
-from .ann_index import ANNIndex
 
 __all__ = [
+    'ANNIndex',
     'MusicRecommender',
     'MusicVectorDatabase', 
     'SpotifyMusicCollector',
-    'ANNIndex'
 ]

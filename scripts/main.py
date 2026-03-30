@@ -5,18 +5,19 @@ Spotify 음악 추천 시스템 메인 실행 파일
 
 import os
 import sys
+import pandas as pd
 from pathlib import Path
+from dotenv import load_dotenv
 
+# Local source imports
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-import pandas as pd
-from dotenv import load_dotenv
-
 from src.music_recommender import MusicRecommender
 from src.vector_database import MusicVectorDatabase
 from src.spotify_collector import SpotifyMusicCollector
+
 
 def main():
     """메인 실행 함수"""

@@ -1,17 +1,21 @@
 import os
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
-from typing import List, Dict, Any, Optional
 import pandas as pd
 from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
 
-from .config import ConfigManager
-from .exceptions import SpotifyAPIError, handle_exception, ValidationError
-from .validators import DataValidator, DataSanitizer
+# Spotipy!
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+
+# Local source imports
 from .logger import get_logger
+from .config import ConfigManager
+from .validators import DataValidator, DataSanitizer
+from .exceptions import SpotifyAPIError, handle_exception, ValidationError, MusicRecommenderError
 
 load_dotenv()
 logger = get_logger(__name__)
+
 
 class SpotifyMusicCollector:
     def __init__(self, config_manager: Optional[ConfigManager] = None):
@@ -78,7 +82,9 @@ class SpotifyMusicCollector:
             
             logger.info(f"트랙 검색 완료: {len(tracks)}개 결과")
             return tracks
-            
+
+        except MusicRecommenderError:
+            raise
         except Exception as e:
             logger.error(f"트랙 검색 실패: '{query}'", exception=e)
             raise SpotifyAPIError(f"트랙 검색에 실패했습니다: {str(e)}", original_exception=e)
@@ -104,7 +110,9 @@ class SpotifyMusicCollector:
             
             logger.info(f"오디오 특성 조회 완료: {len(valid_features)}개 결과")
             return valid_features
-            
+
+        except MusicRecommenderError:
+            raise
         except Exception as e:
             logger.error(f"오디오 특성 조회 실패", exception=e)
             raise SpotifyAPIError(f"오디오 특성 조회에 실패했습니다: {str(e)}", original_exception=e)
@@ -125,7 +133,9 @@ class SpotifyMusicCollector:
             else:
                 logger.warning(f"트랙 분석 정보가 없습니다: {track_id}")
                 return {}
-                
+
+        except MusicRecommenderError:
+            raise
         except Exception as e:
             logger.error(f"트랙 분석 조회 실패: {track_id}", exception=e)
             raise SpotifyAPIError(f"트랙 분석 조회에 실패했습니다: {str(e)}", original_exception=e)
@@ -163,7 +173,9 @@ class SpotifyMusicCollector:
             
             logger.info(f"플레이리스트 트랙 조회 완료: {len(tracks)}개 결과")
             return tracks
-            
+
+        except MusicRecommenderError:
+            raise
         except Exception as e:
             logger.error(f"플레이리스트 트랙 조회 실패: {playlist_id}", exception=e)
             raise SpotifyAPIError(f"플레이리스트 트랙 조회에 실패했습니다: {str(e)}", original_exception=e)
@@ -199,7 +211,9 @@ class SpotifyMusicCollector:
             
             logger.info(f"아티스트 인기 트랙 조회 완료: {len(tracks)}개 결과")
             return tracks
-            
+
+        except MusicRecommenderError:
+            raise
         except Exception as e:
             logger.error(f"아티스트 인기 트랙 조회 실패: {artist_id}", exception=e)
             raise SpotifyAPIError(f"아티스트 인기 트랙 조회에 실패했습니다: {str(e)}", original_exception=e)
@@ -263,7 +277,9 @@ class SpotifyMusicCollector:
             
             logger.info(f"음악 데이터 수집 완료: {len(df)}개 트랙")
             return df
-            
+
+        except MusicRecommenderError:
+            raise
         except Exception as e:
             logger.error("음악 데이터 수집 실패", exception=e)
             raise SpotifyAPIError(f"음악 데이터 수집에 실패했습니다: {str(e)}", original_exception=e)

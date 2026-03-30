@@ -2,9 +2,11 @@
 데이터 검증 모듈
 """
 
-from typing import Dict, Any, List, Optional, Union
-import pandas as pd
 import numpy as np
+import pandas as pd
+from typing import Dict, Any, List, Optional, Union
+
+# Local source imports
 from .exceptions import ValidationError
 
 
@@ -169,12 +171,18 @@ class DataSanitizer:
         
         return sanitized
     
+    # Spotify audio_features API returns these as non-numeric strings
+    _AUDIO_FEATURE_STRING_FIELDS = {'id', 'uri', 'track_href', 'analysis_url', 'type'}
+
     @staticmethod
     def sanitize_audio_features(features: Dict[str, Any]) -> Dict[str, Any]:
         """오디오 특성 정제"""
         sanitized = {}
-        
+
         for key, value in features.items():
+            if key in DataSanitizer._AUDIO_FEATURE_STRING_FIELDS:
+                sanitized[key] = value
+                continue
             try:
                 sanitized[key] = float(value)
             except (ValueError, TypeError):
@@ -193,7 +201,7 @@ class DataSanitizer:
                     'time_signature': 4
                 }
                 sanitized[key] = default_values.get(key, 0.0)
-        
+
         return sanitized
     
     @staticmethod
@@ -208,6 +216,9 @@ class DataSanitizer:
         dangerous_chars = [';', '--', '/*', '*/', 'xp_', 'sp_']
         for char in dangerous_chars:
             sanitized = sanitized.replace(char, '')
-        
+
+        # 연속 공백 정규화
+        sanitized = ' '.join(sanitized.split())
+
         return sanitized
 

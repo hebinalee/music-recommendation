@@ -112,7 +112,7 @@ class MockSpotifyAPI:
             }
         }
         
-        self.audio_features = [
+        self._mock_audio_features = [
             {
                 'id': 'mock_track_1',
                 'danceability': 0.8,
@@ -133,7 +133,7 @@ class MockSpotifyAPI:
         return self.search_results
     
     def audio_features(self, track_ids):
-        return self.audio_features
+        return self._mock_audio_features
     
     def playlist_tracks(self, playlist_id):
         return {'items': [{'track': self.search_results['tracks']['items'][0]}]}
