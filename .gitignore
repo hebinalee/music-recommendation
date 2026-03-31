@@ -1,0 +1,27 @@
+# 환경 변수 (커밋 금지)
+.env
+*.env
+
+# 모델/데이터 아티팩트
+models/
+chroma_db/
+*.pth
+*.bin
+*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# 로그
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/

@@ -1,6 +1,7 @@
 # Spotify API Credentials
-SPOTIFY_CLIENT_ID=86f567a4e5dc4d94b1098b4608bce395
-SPOTIFY_CLIENT_SECRET=bb047faba305402c8ac986e384ae8992
+# Spotify Developer Dashboard에서 발급: https://developer.spotify.com/dashboard
+SPOTIFY_CLIENT_ID=your_client_id_here
+SPOTIFY_CLIENT_SECRET=your_client_secret_here
 SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/callback
 
 # Vector DB Settings
