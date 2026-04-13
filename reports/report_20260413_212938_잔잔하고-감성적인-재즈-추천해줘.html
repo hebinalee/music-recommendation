@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>음악 추천 리포트 · 2026-04-13 21:29:38</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --green:  #1DB954;
+      --orange: #ff6b35;
+      --dark:   #111111;
+      --dark2:  #181818;
+      --dark3:  #222222;
+      --border: #2a2a2a;
+      --light:  #FFFFFF;
+      --muted:  #9A9A9A;
+      --font: 'Segoe UI','Apple SD Gothic Neo',sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: var(--font); background: var(--dark); color: var(--light); }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(160deg, #0a2342 0%, #0d3b2e 100%);
+      padding: 52px 40px 40px;
+      border-bottom: 2px solid var(--green);
+      position: relative;
+      overflow: hidden;
+    }
+    header::after {
+      content:''; position:absolute; top:-60px; right:-60px;
+      width:300px; height:300px; border-radius:50%;
+      background: radial-gradient(circle, rgba(29,185,84,.15) 0%, transparent 70%);
+    }
+    .header-eyebrow {
+      font-size:11px; font-weight:700; letter-spacing:3px;
+      text-transform:uppercase; color:var(--green); margin-bottom:14px;
+    }
+    header h1 {
+      font-size: clamp(20px, 4vw, 30px); font-weight:800; line-height:1.35;
+      margin-bottom:10px;
+    }
+    header h1 .hl { color: var(--green); }
+    .header-meta { font-size:13px; color:var(--muted); }
+    .kw-pill {
+      display:inline-flex; align-items:center; gap:6px; margin-top:16px;
+      background:rgba(29,185,84,.12); border:1px solid rgba(29,185,84,.4);
+      color:var(--green); padding:5px 14px; border-radius:20px; font-size:13px;
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      background: var(--dark3); border-bottom:1px solid var(--border);
+    }
+    .stat {
+      padding:22px 20px; text-align:center;
+      border-right:1px solid var(--border);
+    }
+    .stat:last-child { border-right:none; }
+    .stat-num { font-size:34px; font-weight:800; color:var(--green); }
+    .stat-lbl { font-size:11px; color:var(--muted); margin-top:4px; letter-spacing:.5px; }
+
+    /* ── LAYOUT ── */
+    .page { max-width:1100px; margin:0 auto; padding:0 24px 80px; }
+    section { margin-top:52px; }
+    .section-title {
+      font-size:17px; font-weight:700;
+      border-left:4px solid var(--green); padding-left:13px;
+      margin-bottom:24px; display:flex; align-items:center; gap:10px;
+    }
+    .section-count {
+      font-size:12px; font-weight:500; color:var(--muted);
+      background:var(--dark3); padding:2px 10px; border-radius:12px;
+    }
+
+    /* ── GENRE CLOUD ── */
+    .genre-cloud { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+
+    /* ── GRID ── */
+    .cards-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap:14px;
+    }
+
+    /* ── TRACK CARD ── */
+    .track-card {
+      background:var(--dark2); border-radius:10px;
+      padding:16px 18px; display:flex; gap:12px;
+      border:1px solid var(--border);
+      transition: border-color .18s, transform .18s, box-shadow .18s;
+    }
+    .track-card:hover {
+      border-color: var(--green);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29,185,84,.12);
+    }
+    .seed-card {
+      border-color: rgba(29,185,84,.35);
+      background: rgba(29,185,84,.04);
+    }
+    .track-rank {
+      font-size:12px; font-weight:800; min-width:38px;
+      color:var(--muted); padding-top:2px; flex-shrink:0;
+    }
+    .seed-card .track-rank { color: var(--green); }
+    .track-info { flex:1; min-width:0; }
+    .track-name {
+      font-size:14px; font-weight:600; line-height:1.4;
+      display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+      margin-bottom:4px;
+    }
+    .track-name a { color:var(--light); text-decoration:none; }
+    .track-name a:hover { color:var(--green); }
+    .track-meta {
+      font-size:12px; color:var(--muted); margin-bottom:2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .track-meta.artist { color:#ccc; font-size:13px; }
+
+    /* Popularity bar */
+    .pop-row {
+      display:flex; align-items:center; gap:7px; margin:8px 0 6px;
+    }
+    .pop-label { font-size:10px; color:var(--muted); width:36px; flex-shrink:0; }
+    .pop-bar-wrap { flex:1; background:#2e2e2e; border-radius:3px; height:5px; overflow:hidden; }
+    .pop-bar { height:100%; background:var(--green); border-radius:3px; }
+    .pop-num { font-size:10px; color:var(--muted); width:22px; text-align:right; flex-shrink:0; }
+
+    /* Genre tags */
+    .genre-row { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+    .genre-tag {
+      font-size:10px; padding:2px 7px; border-radius:10px;
+      background:rgba(29,185,84,.12); color:var(--green); white-space:nowrap;
+    }
+    .genre-tag.muted { background:var(--dark3); color:var(--muted); }
+
+    /* Badges */
+    .sim-badge {
+      font-size:10px; font-weight:700; padding:2px 8px;
+      border-radius:10px; border:1px solid; white-space:nowrap;
+    }
+    .explicit-tag {
+      font-size:9px; font-weight:700; padding:1px 5px;
+      background:#aaa; color:#000; border-radius:3px;
+    }
+    .preview-btn {
+      display:inline-block; margin-top:8px;
+      font-size:11px; color:var(--green);
+      text-decoration:none; border:1px solid rgba(29,185,84,.4);
+      padding:3px 10px; border-radius:10px;
+    }
+    .preview-btn:hover { background:rgba(29,185,84,.1); }
+
+    /* ── CHART SECTION ── */
+    .chart-row {
+      display:grid; grid-template-columns:280px 1fr; gap:32px; align-items:center;
+    }
+    @media(max-width:680px) { .chart-row { grid-template-columns:1fr; } }
+    .chart-box {
+      background:var(--dark2); border-radius:12px;
+      padding:24px; border:1px solid var(--border);
+    }
+    .chart-legend {
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .legend-item {
+      display:flex; align-items:center; gap:10px; font-size:13px;
+    }
+    .legend-dot {
+      width:12px; height:12px; border-radius:50%; flex-shrink:0;
+    }
+    .legend-label { flex:1; color:var(--light); }
+    .legend-count { color:var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align:center; color:var(--muted); font-size:12px;
+      margin-top:60px; padding:24px 24px 40px;
+      border-top:1px solid var(--border);
+    }
+    footer a { color:var(--green); text-decoration:none; }
+    footer a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Music Recommender · Report</div>
+  <h1>"<span class="hl">잔잔하고 감성적인 재즈 추천해줘</span>"</h1>
+  <div class="header-meta">생성 시각 2026-04-13 21:29:38</div>
+  <div class="kw-pill">🔍 검색 키워드: 잔잔하고 감성적인 재즈 추천해줘</div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">3</div>
+    <div class="stat-lbl">씨앗 트랙</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">9</div>
+    <div class="stat-lbl">추천 트랙</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">2</div>
+    <div class="stat-lbl">장르 수</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">52</div>
+    <div class="stat-lbl">평균 인기도</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ① 씨앗 트랙 -->
+  <section>
+    <div class="section-title">
+      씨앗 트랙 (Seed Tracks)
+      <span class="section-count">3개</span>
+    </div>
+    <div class="genre-cloud"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+    <div class="cards-grid" style="margin-top:16px;">
+      
+    <div class="track-card seed-card">
+      <div class="track-rank">SEED</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/5n6VmctIAemM3ZI3Lm4xd8" target="_blank" rel="noopener">듣는편지</a>
+          
+        </div>
+        <div class="track-meta artist">40</div>
+        <div class="track-meta album">듣는편지 &nbsp;·&nbsp; 3:24</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:42%"></div></div>
+          <span class="pop-num">42</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card seed-card">
+      <div class="track-rank">SEED</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/4DSuNseoQlb4X4sGamoxWP" target="_blank" rel="noopener">눈물</a>
+          
+        </div>
+        <div class="track-meta artist">플라워</div>
+        <div class="track-meta album">Tears... &nbsp;·&nbsp; 4:45</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:41%"></div></div>
+          <span class="pop-num">41</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card seed-card">
+      <div class="track-rank">SEED</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/1IpOlgbX2B8QB0GnT8DUP1" target="_blank" rel="noopener">슬픈 동화</a>
+          
+        </div>
+        <div class="track-meta artist">Yarn</div>
+        <div class="track-meta album">Story &nbsp;·&nbsp; 4:24</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:34%"></div></div>
+          <span class="pop-num">34</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ② 장르 분포 차트 -->
+  <section>
+    <div class="section-title">추천 트랙 장르 분포</div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <canvas id="genreChart" width="240" height="240"></canvas>
+      </div>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+  </section>
+
+  <!-- ③ 추천 트랙 -->
+  <section>
+    <div class="section-title">
+      추천 트랙 (Recommendations)
+      <span class="section-count">9개</span>
+    </div>
+    <div class="cards-grid">
+      
+    <div class="track-card ">
+      <div class="track-rank">#1</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/3s761CQaziQ0GEN1yUkIsG" target="_blank" rel="noopener">‎Good Night Good Dream</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 84%</span>
+        </div>
+        <div class="track-meta artist">Nerd Connection</div>
+        <div class="track-meta album">‎Good Night Good Dream &nbsp;·&nbsp; 4:25</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:60%"></div></div>
+          <span class="pop-num">60</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#2</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/0LSmb1eo894EJ7eIWPaAgQ" target="_blank" rel="noopener">The time of walking on remembrance</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 82%</span>
+        </div>
+        <div class="track-meta artist">NELL</div>
+        <div class="track-meta album">Separation Anxiety &nbsp;·&nbsp; 5:12</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:56%"></div></div>
+          <span class="pop-num">56</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-rock</span><span class="genre-tag">k-ballad</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#3</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/4OKJVnIyO8KRq182dstNOI" target="_blank" rel="noopener">이미 슬픈 사랑</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 82%</span>
+        </div>
+        <div class="track-meta artist">야다</div>
+        <div class="track-meta album">Wear To Healing &nbsp;·&nbsp; 4:03</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:54%"></div></div>
+          <span class="pop-num">54</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#4</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/14X8vgIFfedRp3Yh8ocLYw" target="_blank" rel="noopener">남자를 몰라</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 82%</span>
+        </div>
+        <div class="track-meta artist">BUZZ</div>
+        <div class="track-meta album">Perfect &nbsp;·&nbsp; 4:12</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:54%"></div></div>
+          <span class="pop-num">54</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#5</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/3mdLDMt3BmNpVBd0Tc7iAn" target="_blank" rel="noopener">My Love (And)</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 81%</span>
+        </div>
+        <div class="track-meta artist">BUZZ</div>
+        <div class="track-meta album">Perfect &nbsp;·&nbsp; 4:04</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:53%"></div></div>
+          <span class="pop-num">53</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#6</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/4KU23Zay3Q1W0c0yJCNczH" target="_blank" rel="noopener">Baby I Need You</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 81%</span>
+        </div>
+        <div class="track-meta artist">JANNABI</div>
+        <div class="track-meta album">Pole Dance &nbsp;·&nbsp; 3:21</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:53%"></div></div>
+          <span class="pop-num">53</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#7</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/01MoBCPgZHsOPYwMJxc9Qo" target="_blank" rel="noopener">Propose</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 80%</span>
+        </div>
+        <div class="track-meta artist">Hot Potato</div>
+        <div class="track-meta album">Seesaw &nbsp;·&nbsp; 3:53</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:50%"></div></div>
+          <span class="pop-num">50</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#8</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/0JtYYcQ330UyNftbi1tM0H" target="_blank" rel="noopener">금지된 사랑</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 78%</span>
+        </div>
+        <div class="track-meta artist">Kim Kyung Ho</div>
+        <div class="track-meta album">KimKyungho 1997 &nbsp;·&nbsp; 4:31</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:46%"></div></div>
+          <span class="pop-num">46</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    <div class="track-card ">
+      <div class="track-rank">#9</div>
+      <div class="track-info">
+        <div class="track-name">
+          
+          <a href="https://open.spotify.com/track/2D4gWKBmxP9KUD7OND0Ujj" target="_blank" rel="noopener">심</a>
+          <span class="sim-badge" style="color:var(--green);border-color:var(--green)">유사도 77%</span>
+        </div>
+        <div class="track-meta artist">Yarn</div>
+        <div class="track-meta album">Story &nbsp;·&nbsp; 4:14</div>
+        <div class="pop-row">
+          <span class="pop-label">인기도</span>
+          <div class="pop-bar-wrap"><div class="pop-bar" style="width:42%"></div></div>
+          <span class="pop-num">42</span>
+        </div>
+        <div class="genre-row"><span class="genre-tag">k-ballad</span><span class="genre-tag">k-rock</span></div>
+        
+      </div>
+    </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Generated by <strong>Music Recommender</strong> &nbsp;·&nbsp;
+  Powered by <a href="https://developer.spotify.com/" target="_blank">Spotify Web API</a>
+  &nbsp;·&nbsp; 2026-04-13 21:29:38
+</footer>
+
+<script>
+(function() {
+  var raw = {"labels": ["k-ballad", "k-rock"], "data": [9, 9], "colors": ["#1DB954", "#ff6b35"]};
+  if (!raw) return;
+
+  var ctx = document.getElementById('genreChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: raw.labels,
+      datasets: [{
+        data: raw.data,
+        backgroundColor: raw.colors,
+        borderWidth: 2,
+        borderColor: '#111',
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ' ' + ctx.label + ': ' + ctx.parsed + '곡';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // 커스텀 범례
+  var legend = document.getElementById('chartLegend');
+  raw.labels.forEach(function(lbl, i) {
+    var div = document.createElement('div');
+    div.className = 'legend-item';
+    div.innerHTML =
+      '<div class="legend-dot" style="background:' + raw.colors[i] + '"></div>' +
+      '<span class="legend-label">' + lbl + '</span>' +
+      '<span class="legend-count">' + raw.data[i] + '곡</span>';
+    legend.appendChild(div);
+  });
+})();
+</script>
+
+</body>
+</html>
